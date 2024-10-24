@@ -3,8 +3,6 @@ let resetBtn = document.querySelector("#reset");
 let newGameBtn = document.querySelector("#new-btn");
 let msgContainer = document.querySelector(".msg-container");
 let msg = document.querySelector("#msg");
-let gameBoard = document.querySelector(".game"); // For drawing the line
-
 let turn0 = true; // Player X, Player O
 let gameActive = true;
 
@@ -19,11 +17,8 @@ const winPatterns = [
     [6, 7, 8]   // Bottom row
 ];
 
-const resetGame = () =>{
-    turn0 = true
-}
 // Handle box click
-boxes.forEach((box, index) => {
+boxes.forEach((box) => {
     box.addEventListener("click", () => {
         if (gameActive && box.innerText === "") {
             box.innerText = turn0 ? "O" : "X";
@@ -33,13 +28,41 @@ boxes.forEach((box, index) => {
     });
 });
 
+// Check for a winner or a tie
+const checkWinner = () => {
+    for (let pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        let pos1Val = boxes[a].innerText;
+        let pos2Val = boxes[b].innerText;
+        let pos3Val = boxes[c].innerText;
+
+        if (pos1Val && pos1Val === pos2Val && pos2Val === pos3Val) {
+            showWinner(pos1Val, pattern);
+            return; // Exit once we find a winner
+        }
+    }
+
+    // Check for a tie
+    if ([...boxes].every(box => box.innerText !== "")) {
+        msg.innerText = "It's a Tie!";
+        msgContainer.classList.remove("hide");
+        gameActive = false;
+
+        // Remove the line if it exists
+        const line = document.querySelector(".line");
+        if (line) {
+            line.remove();
+        }
+    }
+};
+
 // Show winner message
 const showWinner = (winner, winningPattern) => {
     msg.innerText = `Congratulations, the Winner is ${winner}`;
     msgContainer.classList.remove("hide");
     gameActive = false;
-
-    drawWinningLine(winningPattern);
+    
+    drawWinningLine(winningPattern); // Draw the winning line
 };
 
 // Draw a line across the winning pattern
@@ -62,43 +85,25 @@ const drawWinningLine = (pattern) => {
     line.style.transform = `rotate(${Math.atan2(endY - startY, endX - startX)}rad)`;
     line.style.top = `${startY}px`;
     line.style.left = `${startX}px`;
+    line.style.position = 'absolute'; // Ensure line is positioned absolutely
 
     document.body.appendChild(line); // Append line to the body or game board
 };
-
-// Check for a winner
-const checkWinner = () => {
-    for (let pattern of winPatterns) {
-        const [a, b, c] = pattern;
-        let pos1Val = boxes[a].innerText;
-        let pos2Val = boxes[b].innerText;
-        let pos3Val = boxes[c].innerText;
-
-        if (pos1Val && pos1Val === pos2Val && pos2Val === pos3Val) {
-            showWinner(pos1Val, pattern);
-            break;
-        }
-    }
-};
-
-
 
 // Reset the game
 resetBtn.addEventListener("click", () => {
     boxes.forEach((box) => {
         box.innerText = "";
-        box.classList.remove("win");
     });
+    gameActive = true;
+    turn0 = true;
+    msgContainer.classList.add("hide");
 
     // Remove the line if it exists
     const line = document.querySelector(".line");
     if (line) {
         line.remove();
     }
-
-    gameActive = true;
-    turn0 = true;
-    msgContainer.classList.add("hide");
 });
 
 // Start a new game
